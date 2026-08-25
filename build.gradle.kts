@@ -13,6 +13,7 @@ repositories {
 
 application {
     mainClass = "io.ktor.server.netty.EngineMain"
+    applicationDefaultJvmArgs = listOf("-Dio.ktor.development=true")
 }
 
 kotlin {
@@ -22,12 +23,10 @@ kotlin {
 dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.netty)
-    implementation(libs.ktor.server.call.logging)
     implementation(libs.ktor.server.config.yaml)
     implementation(libs.ktor.server.status.pages)
     implementation(libs.ktor.client.core)
     implementation(libs.ktor.client.cio)
-    implementation(libs.ktor.client.content.negotiation)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.graphql.kotlin.ktor.server)
     implementation(libs.logback.classic)
