@@ -6,13 +6,33 @@ Foi projetado para ser consumido pelo client Kotlin Multiplatform [DailyPulse-na
 
 ## O que entra e o que não entra
 
-O client tem duas telas remotas: **Articles** e **Sources**. A tela **About** é informação local do device e **não** passa por este BFF.
+O client tem três queries remotas: **Aggregators**, **Articles** e **Sources**. A tela **About** é informação local do device e **não** passa por este BFF.
 
 Cache (SQLDelight) e pull-to-refresh ficam no app. Refresh é a mesma query GraphQL de novo (`forceFetch` no cliente). Este serviço não usa banco no v1.
 
 ## Contrato GraphQL
 
 Campos da UI são non-null. Null da NewsAPI vira fallback no BFF.
+
+### Aggregators
+
+Catálogo de agregadores de notícia disponíveis no BFF. Hoje retorna só NewsAPI; novos providers entram aqui quando forem integrados.
+
+Cada item: `id`, `name`.
+
+- `id` — chave estável para o seletor do app (ex. `newsapi`)
+- `name` — rótulo pronto para a UI (ex. `NewsAPI`)
+
+`articles` e `sources` ainda não recebem `aggregator`; a escolha no app é persistida para o passo 2 (provider routing).
+
+```graphql
+query Aggregators {
+  aggregators {
+    id
+    name
+  }
+}
+```
 
 ### Articles
 
@@ -89,6 +109,7 @@ Build da imagem: `Dockerfile` na raiz (`buildFatJar`).
 
 ## Arquitetura
 
-- Schema GraphQL gerado a partir dos tipos Kotlin (`Article`, `Source`, `Query.articles`, `Query.sources`)
+- Schema GraphQL gerado a partir dos tipos Kotlin (`Aggregator`, `Article`, `Source`, `Query.aggregators`, `Query.articles`, `Query.sources`)
+- `AggregatorCatalog` — catálogo fixo de agregadores exposto em `Query.aggregators`
 - `NewsProvider` — contrato estável para o app; um segundo adapter entra atrás dos mesmos tipos
 - `NewsApiProvider` / `NewsApiClient` — primeira fonte (REST NewsAPI, key no header `X-Api-Key`)

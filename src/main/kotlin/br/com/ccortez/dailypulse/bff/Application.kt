@@ -1,5 +1,6 @@
 package br.com.ccortez.dailypulse.bff
 
+import br.com.ccortez.dailypulse.bff.graphql.AggregatorsQuery
 import br.com.ccortez.dailypulse.bff.graphql.ArticlesQuery
 import br.com.ccortez.dailypulse.bff.graphql.SafeDataFetcherExceptionHandler
 import br.com.ccortez.dailypulse.bff.graphql.SourcesQuery
@@ -45,6 +46,7 @@ fun Application.module(newsProvider: NewsProvider? = null) {
         schema {
             packages = listOf("br.com.ccortez.dailypulse.bff")
             queries = listOf(
+                AggregatorsQuery(),
                 ArticlesQuery(provider),
                 SourcesQuery(provider),
             )

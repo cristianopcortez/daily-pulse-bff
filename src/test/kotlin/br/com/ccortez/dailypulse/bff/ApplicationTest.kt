@@ -63,6 +63,21 @@ class ApplicationTest {
     }
 
     @Test
+    fun aggregatorsQuery() = testApplication {
+        application { module(fakeProvider) }
+        val response = client.post("/graphql") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """{"query":"query Aggregators { aggregators { id name } }"}""",
+            )
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("newsapi"))
+        assertTrue(body.contains("NewsAPI"))
+    }
+
+    @Test
     fun sourcesQuery() = testApplication {
         application { module(fakeProvider) }
         val response = client.post("/graphql") {
