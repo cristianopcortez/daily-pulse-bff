@@ -11,4 +11,16 @@ class AggregatorCatalogTest {
         assertEquals("newsapi", aggregators.single().id)
         assertEquals("NewsAPI", aggregators.single().name)
     }
+
+    @Test
+    fun `resolveId defaults to newsapi`() {
+        assertEquals(AggregatorCatalog.DEFAULT_ID, AggregatorCatalog.resolveId(null))
+        assertEquals(AggregatorCatalog.DEFAULT_ID, AggregatorCatalog.resolveId(""))
+        assertEquals(AggregatorCatalog.DEFAULT_ID, AggregatorCatalog.resolveId("  "))
+    }
+
+    @Test
+    fun `resolveId keeps explicit value`() {
+        assertEquals("newsapi", AggregatorCatalog.resolveId("newsapi"))
+    }
 }

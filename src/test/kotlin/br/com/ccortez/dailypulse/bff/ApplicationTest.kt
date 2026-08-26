@@ -78,6 +78,34 @@ class ApplicationTest {
     }
 
     @Test
+    fun articlesQueryWithAggregator() = testApplication {
+        application { module(fakeProvider) }
+        val response = client.post("/graphql") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """{"query":"query Articles(${'$'}aggregator: String, ${'$'}source: String) { articles(aggregator: ${'$'}aggregator, source: ${'$'}source) { title desc date imageUrl } }","variables":{"aggregator":"newsapi"}}""",
+            )
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("Markets open higher"))
+    }
+
+    @Test
+    fun unknownAggregatorReturnsGraphQLError() = testApplication {
+        application { module(fakeProvider) }
+        val response = client.post("/graphql") {
+            header(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+            setBody(
+                """{"query":"query Sources(${'$'}aggregator: String) { sources(aggregator: ${'$'}aggregator) { id } }","variables":{"aggregator":"gnews"}}""",
+            )
+        }
+        assertEquals(HttpStatusCode.OK, response.status)
+        val body = response.bodyAsText()
+        assertTrue(body.contains("News aggregator is not available: gnews"))
+    }
+
+    @Test
     fun sourcesQuery() = testApplication {
         application { module(fakeProvider) }
         val response = client.post("/graphql") {

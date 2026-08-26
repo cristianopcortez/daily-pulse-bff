@@ -23,7 +23,7 @@ Cada item: `id`, `name`.
 - `id` — chave estável para o seletor do app (ex. `newsapi`)
 - `name` — rótulo pronto para a UI (ex. `NewsAPI`)
 
-`articles` e `sources` ainda não recebem `aggregator`; a escolha no app é persistida para o passo 2 (provider routing).
+`articles` e `sources` aceitam `aggregator` (opcional, default `newsapi`) para rotear ao provider correto.
 
 ```graphql
 query Aggregators {
@@ -42,13 +42,14 @@ Cada card: `title`, `desc`, `date`, `imageUrl`.
 - `desc` vazio/null → `"Click to find out more"`
 - `imageUrl` vazio/inválido → imagem fallback CNBC
 
-Argumento `source: String` (opcional): id da fonte (ex. `bbc-news`). Sem `source`, o BFF usa o comportamento atual do app: `country=us`, `category=business`.
+Argumentos opcionais:
 
-Não expõe author, content, url, objeto source da NewsAPI, etc.
+- `aggregator: String` — id do agregador (ex. `newsapi`). Omitido → `newsapi`.
+- `source: String` — id da fonte dentro do agregador (ex. `bbc-news`). Omitido → `country=us`, `category=business`.
 
 ```graphql
-query Articles($source: String) {
-  articles(source: $source) {
+query Articles($aggregator: String, $source: String) {
+  articles(aggregator: $aggregator, source: $source) {
     title
     desc
     date
@@ -66,9 +67,11 @@ Cada card: `id`, `name`, `desc`, `origin`.
 
 Não expõe url nem category no v1.
 
+Argumento opcional `aggregator: String` — id do agregador (ex. `newsapi`). Omitido → `newsapi`.
+
 ```graphql
-query Sources {
-  sources {
+query Sources($aggregator: String) {
+  sources(aggregator: $aggregator) {
     id
     name
     desc
@@ -111,5 +114,6 @@ Build da imagem: `Dockerfile` na raiz (`buildFatJar`).
 
 - Schema GraphQL gerado a partir dos tipos Kotlin (`Aggregator`, `Article`, `Source`, `Query.aggregators`, `Query.articles`, `Query.sources`)
 - `AggregatorCatalog` — catálogo fixo de agregadores exposto em `Query.aggregators`
+- `AggregatorRouter` — roteia `articles`/`sources` para o `NewsProvider` do agregador escolhido
 - `NewsProvider` — contrato estável para o app; um segundo adapter entra atrás dos mesmos tipos
 - `NewsApiProvider` / `NewsApiClient` — primeira fonte (REST NewsAPI, key no header `X-Api-Key`)
