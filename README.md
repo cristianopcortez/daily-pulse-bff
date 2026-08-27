@@ -12,7 +12,7 @@ Cache (SQLDelight) e pull-to-refresh ficam no app. Refresh é a mesma query Grap
 
 ## Multi-provider news
 
-Feature que permite ao app escolher **qual agregador de notícias** usar (NewsAPI, GNews, …). O BFF expõe um catálogo, roteia as queries e mantém o mesmo contrato GraphQL para o KMP.
+Feature que permite ao app escolher **qual agregador de notícias** usar. Hoje: **NewsAPI** e **GNews** (outros entram como novos adapters). O BFF expõe um catálogo, roteia as queries e mantém o mesmo contrato GraphQL para o KMP.
 
 ### Agregador vs jornal (source)
 
@@ -43,12 +43,12 @@ flowchart LR
 
 ### Agregadores disponíveis e API keys
 
-Cada agregador exige sua própria chave no BFF. Sem a key, o agregador **não aparece** em `aggregators` e não pode ser roteado.
+Cada agregador exige sua própria chave no BFF para responder com dados. O comportamento no catálogo difere:
 
-| Agregador | `id` | Variável de ambiente | No catálogo quando |
-| --- | --- | --- | --- |
-| NewsAPI | `newsapi` | `NEWS_API_KEY` | Sempre registrado |
-| GNews | `gnews` | `GNEWS_API_KEY` | Key definida no `.env` / secret |
+| Agregador | `id` | Variável de ambiente | No catálogo | Sem a key |
+| --- | --- | --- | --- | --- |
+| NewsAPI | `newsapi` | `NEWS_API_KEY` | Sempre | Aparece em `aggregators`, mas `articles`/`sources` falham em runtime (`News source is not authorized`) |
+| GNews | `gnews` | `GNEWS_API_KEY` | Só com key | Não aparece em `aggregators`; `aggregator: "gnews"` retorna `News aggregator is not available: gnews` |
 
 Compatibilidade: queries sem `aggregator` continuam usando `newsapi` (comportamento do app legado).
 
