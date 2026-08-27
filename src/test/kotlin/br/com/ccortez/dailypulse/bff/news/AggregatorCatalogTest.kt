@@ -5,11 +5,20 @@ import kotlin.test.assertEquals
 
 class AggregatorCatalogTest {
     @Test
-    fun `available returns newsapi entry`() {
-        val aggregators = AggregatorCatalog.available()
+    fun `forIds returns only configured aggregators`() {
+        val aggregators = AggregatorCatalog.forIds(setOf(AggregatorCatalog.NEWSAPI_ID))
         assertEquals(1, aggregators.size)
         assertEquals("newsapi", aggregators.single().id)
         assertEquals("NewsAPI", aggregators.single().name)
+    }
+
+    @Test
+    fun `forIds includes gnews when configured`() {
+        val aggregators = AggregatorCatalog.forIds(
+            setOf(AggregatorCatalog.NEWSAPI_ID, AggregatorCatalog.GNEWS_ID),
+        )
+        assertEquals(2, aggregators.size)
+        assertEquals(listOf("newsapi", "gnews"), aggregators.map { it.id })
     }
 
     @Test
@@ -21,6 +30,6 @@ class AggregatorCatalogTest {
 
     @Test
     fun `resolveId keeps explicit value`() {
-        assertEquals("newsapi", AggregatorCatalog.resolveId("newsapi"))
+        assertEquals("gnews", AggregatorCatalog.resolveId("gnews"))
     }
 }

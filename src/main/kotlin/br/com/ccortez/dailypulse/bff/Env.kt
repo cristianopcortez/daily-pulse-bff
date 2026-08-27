@@ -16,4 +16,7 @@ object Env {
 
     val newsApiKey: String?
         get() = get("NEWS_API_KEY")
+
+    val gnewsApiKey: String?
+        get() = get("GNEWS_API_KEY")
 }

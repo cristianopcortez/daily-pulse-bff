@@ -7,6 +7,8 @@ import br.com.ccortez.dailypulse.bff.graphql.SourcesQuery
 import br.com.ccortez.dailypulse.bff.news.AggregatorCatalog
 import br.com.ccortez.dailypulse.bff.news.AggregatorRouter
 import br.com.ccortez.dailypulse.bff.news.NewsProvider
+import br.com.ccortez.dailypulse.bff.news.gnews.GNewsClient
+import br.com.ccortez.dailypulse.bff.news.gnews.GNewsProvider
 import br.com.ccortez.dailypulse.bff.news.newsapi.NewsApiClient
 import br.com.ccortez.dailypulse.bff.news.newsapi.NewsApiProvider
 import com.expediagroup.graphql.server.ktor.GraphQL
@@ -27,15 +29,13 @@ import io.ktor.server.routing.routing
 
 fun Application.module(newsProvider: NewsProvider? = null) {
     val ownedClient = if (newsProvider == null) createNewsHttpClient() else null
-    val newsApiProvider = newsProvider ?: NewsApiProvider(
-        NewsApiClient(
-            httpClient = ownedClient!!,
-            apiKeyProvider = { Env.newsApiKey },
-        ),
-    )
-    val aggregatorRouter = AggregatorRouter(
-        providers = mapOf(AggregatorCatalog.NEWSAPI_ID to newsApiProvider),
-    )
+    val providers = if (newsProvider != null) {
+        mapOf(AggregatorCatalog.NEWSAPI_ID to newsProvider)
+    } else {
+        buildProductionProviders(requireNotNull(ownedClient))
+    }
+    val aggregatorRouter = AggregatorRouter(providers = providers)
+    val aggregators = AggregatorCatalog.forIds(providers.keys)
 
     if (ownedClient != null) {
         monitor.subscribe(ApplicationStopped) {
@@ -51,7 +51,7 @@ fun Application.module(newsProvider: NewsProvider? = null) {
         schema {
             packages = listOf("br.com.ccortez.dailypulse.bff")
             queries = listOf(
-                AggregatorsQuery(),
+                AggregatorsQuery(aggregators),
                 ArticlesQuery(aggregatorRouter),
                 SourcesQuery(aggregatorRouter),
             )
@@ -69,6 +69,29 @@ fun Application.module(newsProvider: NewsProvider? = null) {
         if (developmentMode) {
             graphiQLRoute()
         }
+    }
+}
+
+private fun buildProductionProviders(httpClient: HttpClient): Map<String, NewsProvider> = buildMap {
+    put(
+        AggregatorCatalog.NEWSAPI_ID,
+        NewsApiProvider(
+            NewsApiClient(
+                httpClient = httpClient,
+                apiKeyProvider = { Env.newsApiKey },
+            ),
+        ),
+    )
+    if (!Env.gnewsApiKey.isNullOrBlank()) {
+        put(
+            AggregatorCatalog.GNEWS_ID,
+            GNewsProvider(
+                GNewsClient(
+                    httpClient = httpClient,
+                    apiKeyProvider = { Env.gnewsApiKey },
+                ),
+            ),
+        )
     }
 }
 
